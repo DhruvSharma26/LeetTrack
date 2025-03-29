@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Get user's recent submissions for consistency analysis
-        const submissions = await leetcodeClient.recent_user_submissions(username, { limit: 50 });
+        const submissions = await leetcodeClient.recent_user_submissions(username, 50);
         
         // Get problem solving stats
         const userProblems = await leetcodeClient.problems(username);
