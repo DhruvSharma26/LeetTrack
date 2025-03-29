@@ -379,32 +379,6 @@ export default function ProfileComparison() {
                 </CardContent>
               </Card>
               
-              {/* Individual Strong Topics */}
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="text-base">Individual Strong Topics</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-4">
-                    {comparisonResult.profiles.map((profile) => (
-                      <div key={profile.username} className="space-y-2">
-                        <h3 className="font-medium text-sm">{profile.username}'s Strengths:</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {profile.strongTopics.map((topic, index) => (
-                            <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-100">
-                              {topic}
-                            </Badge>
-                          ))}
-                          {profile.strongTopics.length === 0 && (
-                            <p className="text-muted-foreground text-sm">No strong topics identified</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Common topics */}
               <Card>
                 <CardHeader className="border-b">
