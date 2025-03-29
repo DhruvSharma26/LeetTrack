@@ -2,7 +2,7 @@
 
 LeetTrack is a full-stack application designed to analyze and compare LeetCode profiles, providing comprehensive scoring and insights for programmers looking to improve their problem-solving skills.
 
-###Features
+### Features
 
 - **Profile Analysis**: Get a detailed breakdown of your LeetCode performance with a score out of 100
 - **Comparative Analysis**: Compare multiple LeetCode profiles side-by-side
@@ -13,7 +13,7 @@ LeetTrack is a full-stack application designed to analyze and compare LeetCode p
 ### Tech Stack
 
 
-## 🖥️ Usage
+##  Usage
 
 1. Register or log in to your account
 2. Choose between "Profile Analysis" or "Profile Comparison"
