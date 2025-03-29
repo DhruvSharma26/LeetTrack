@@ -381,12 +381,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Calculate total score (based on problems solved, difficulty distribution, consistency)
         // This is a custom formula that weighs different aspects of the profile
         const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
-        const totalScore = Math.min(100, Math.round(
-          (totalProblems / 10) * 0.3 + // Problems solved (30%)
-          (difficultyScore * 20) * 0.4 + // Difficulty level (40%)
-          consistency * 0.2 + // Consistency (20%)
-          problemSolvingSpeed * 0.1 // Problem-solving speed (10%)
-        ));
+        
+        // Enhanced calculation to ensure scores scale properly
+        const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
+        const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
+        const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
+        const speedPoints = Math.min(10, Math.round(problemSolvingSpeed * 0.1)); // Scale up to 10 points max
+        
+        // Sum up the points to get total score out of 100
+        const totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
+        
+        console.log(`Score calculation for ${username}:
+          Total Problems: ${totalProblems} → ${problemsScore} points
+          Difficulty Score: ${difficultyScore.toFixed(2)} → ${difficultyScorePoints} points
+          Consistency: ${consistency}% → ${consistencyPoints} points
+          Speed: ${problemSolvingSpeed}% → ${speedPoints} points
+          Total Score: ${totalScore}/100
+        `);
         
         // Generate personalized recommendations
         const recommendations = [];
@@ -512,12 +523,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             // Calculate total score
             const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
-            const totalScore = Math.min(100, Math.round(
-              (totalProblems / 10) * 0.3 + // Problems solved (30%)
-              (difficultyScore * 20) * 0.4 + // Difficulty level (40%)
-              consistency * 0.2 + // Consistency (20%)
-              (userProfile.matchedUser.submitStats.acRate) * 0.1 // Problem-solving speed (10%)
-            ));
+            
+            // Enhanced calculation to ensure scores scale properly
+            const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
+            const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
+            const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
+            const speedPoints = Math.min(10, Math.round((userProfile.matchedUser.submitStats.acRate || 0) * 0.1)); // Scale up to 10 points max
+            
+            // Sum up the points to get total score out of 100
+            const totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
             
             return {
               username,
