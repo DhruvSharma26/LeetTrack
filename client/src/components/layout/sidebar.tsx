@@ -40,7 +40,7 @@ export default function Sidebar() {
   const { user } = useAuth();
   
   return (
-    <aside className="w-full md:w-64 bg-gray-800 text-white flex flex-col h-screen">
+    <aside className="w-full md:w-64 bg-gray-800 text-white flex flex-col min-h-screen h-full">
       <div className="p-4 border-b border-gray-700 flex items-center">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
