@@ -298,6 +298,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API route to analyze a LeetCode profile
+  app.post("/api/analyze-profile", isAuthenticated, async (req, res) => {
+    try {
+      const { username } = req.body;
+      
+      if (!username) {
+        return res.status(400).json({ message: "Username is required" });
+      }
+      
+      // In a real implementation, this would fetch data from LeetCode's API
+      // For demo purposes, we'll generate some realistic sample data
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate a realistic analysis result
+      const totalProblems = Math.floor(Math.random() * 800) + 200;
+      const easyCount = Math.floor(totalProblems * (0.4 + Math.random() * 0.2));
+      const mediumCount = Math.floor(totalProblems * (0.3 + Math.random() * 0.2));
+      const hardCount = totalProblems - easyCount - mediumCount;
+      
+      const analysisResult = {
+        username,
+        totalScore: Math.floor(Math.random() * 30) + 70, // Score between 70-100
+        totalProblems,
+        easyCount,
+        mediumCount,
+        hardCount,
+        strongTopics: ["Arrays", "Dynamic Programming", "Binary Search", "Trees"].slice(0, Math.floor(Math.random() * 3) + 2),
+        weakTopics: ["Graph", "Backtracking", "Bit Manipulation", "Design"].slice(0, Math.floor(Math.random() * 3) + 2),
+        consistency: Math.floor(Math.random() * 40) + 60, // 60-100%
+        problemSolvingSpeed: Math.floor(Math.random() * 30) + 70, // 70-100
+        ranking: Math.floor(Math.random() * 50000) + 1000,
+        recommendations: [
+          "Focus on solving more hard problems to improve your ranking",
+          "Practice more consistently with daily challenges",
+          "Work on improving your weak areas, particularly in Graph algorithms",
+          "Try participating in weekly contests to build problem-solving speed"
+        ].slice(0, Math.floor(Math.random() * 2) + 3)
+      };
+      
+      res.json(analysisResult);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to analyze LeetCode profile" });
+    }
+  });
+  
+  // API route to compare LeetCode profiles
+  app.post("/api/compare-profiles", isAuthenticated, async (req, res) => {
+    try {
+      const { usernames } = req.body;
+      
+      if (!usernames || !Array.isArray(usernames) || usernames.length < 2) {
+        return res.status(400).json({ message: "At least two usernames are required" });
+      }
+      
+      // In a real implementation, this would fetch data from LeetCode's API
+      // For demo purposes, we'll generate some realistic sample data
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate realistic comparison results
+      const profiles = usernames.map((username, index) => {
+        const baseScore = 65 + (index * 5) % 30;
+        const problemCount = 200 + (index * 50) % 300;
+        const easyPercent = 40 + (index * 5) % 30;
+        const mediumPercent = 30 + (index * 7) % 40;
+        const hardPercent = 100 - easyPercent - mediumPercent;
+        
+        return {
+          username,
+          totalScore: baseScore,
+          totalProblems: problemCount,
+          easyCount: Math.round(problemCount * (easyPercent / 100)),
+          mediumCount: Math.round(problemCount * (mediumPercent / 100)),
+          hardCount: Math.round(problemCount * (hardPercent / 100)),
+          strongTopics: ["Arrays", "Dynamic Programming", "Binary Search", "Trees", "Strings"].slice(0, 2 + (index % 3)),
+          consistency: 60 + (index * 8) % 30,
+          ranking: 50000 - (index * 10000),
+        };
+      });
+      
+      // Find common topics
+      const allStrongTopics = profiles.map(p => p.strongTopics);
+      const commonTopics = allStrongTopics[0].filter(topic => 
+        allStrongTopics.every(topics => topics.includes(topic))
+      );
+      
+      const result = {
+        profiles,
+        commonTopics,
+        analysis: "Based on the profiles compared, there's a significant difference in problem-solving patterns and efficiency. Some users excel at harder problems while others have solved more problems overall. The consistency in problem solving varies across profiles."
+      };
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to compare LeetCode profiles" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

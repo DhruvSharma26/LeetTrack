@@ -68,11 +68,11 @@ export default function ProfileComparison() {
   const [comparisonResult, setComparisonResult] = useState<ProfileComparisonResult | null>(null);
   const [usernames, setUsernames] = useState<string[]>([]);
 
-  // Create form
+  // Create form with default values
   const form = useForm<ProfileComparisonValues>({
     resolver: zodResolver(profileComparisonSchema),
     defaultValues: {
-      usernames: [],
+      usernames: usernames,
     },
   });
 
@@ -103,44 +103,11 @@ export default function ProfileComparison() {
     form.setValue("usernames", newUsernames);
   };
 
-  // Mock comparison mutation
+  // Comparison mutation that uses the API
   const compareProfilesMutation = useMutation({
     mutationFn: async (data: ProfileComparisonValues) => {
-      // In a real application, this would be an API call
-      // const res = await apiRequest("POST", "/api/compare-profiles", data);
-      // return await res.json();
-      
-      // For demo purposes, we'll return mock data after a delay
-      // In production, this would be replaced with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Generate mock data for each username
-      const profiles = data.usernames.map((username, index) => {
-        // Mock variable values for each user to make it interesting
-        const baseScore = 65 + (index * 5) % 30;
-        const problemCount = 200 + (index * 50) % 300;
-        const easyPercent = 40 + (index * 5) % 30;
-        const mediumPercent = 30 + (index * 7) % 40;
-        const hardPercent = 100 - easyPercent - mediumPercent;
-        
-        return {
-          username,
-          totalScore: baseScore,
-          totalProblems: problemCount,
-          easyCount: Math.round(problemCount * (easyPercent / 100)),
-          mediumCount: Math.round(problemCount * (mediumPercent / 100)),
-          hardCount: Math.round(problemCount * (hardPercent / 100)),
-          strongTopics: ["Arrays", "Dynamic Programming", "Binary Search"].slice(0, 2 + (index % 2)),
-          consistency: 60 + (index * 8) % 30,
-          ranking: 50000 - (index * 10000),
-        };
-      });
-      
-      return {
-        profiles,
-        commonTopics: ["Arrays", "Strings"],
-        analysis: "Based on the profiles compared, there's a significant difference in problem-solving patterns and efficiency. Some users excel at harder problems while others have solved more problems overall. The consistency in problem solving varies across profiles."
-      };
+      const res = await apiRequest("POST", "/api/compare-profiles", data);
+      return await res.json();
     },
     onSuccess: (data) => {
       setComparisonResult(data);
@@ -182,7 +149,6 @@ export default function ProfileComparison() {
         <CardContent>
           <div className="space-y-6">
             <div className="space-y-4">
-              <FormLabel>LeetCode Usernames</FormLabel>
               <div className="flex gap-2">
                 <Input 
                   placeholder="Enter a LeetCode username" 
@@ -204,14 +170,14 @@ export default function ProfileComparison() {
                   Add
                 </Button>
               </div>
-              <FormDescription>
+              <p className="text-sm text-muted-foreground">
                 Add at least two usernames to compare profiles
-              </FormDescription>
+              </p>
               
-              {/* Error message */}
+              {/* Display validation errors */}
               {form.formState.errors.usernames && (
                 <p className="text-sm font-medium text-destructive">
-                  {form.formState.errors.usernames.message}
+                  At least two usernames are required for comparison
                 </p>
               )}
               

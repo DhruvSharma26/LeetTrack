@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -24,20 +23,18 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BarChart4, Circle, Trophy, Users } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Schema for profile submission
 const profileSchema = z.object({
-  leetcodeId: z.string().min(1, "LeetCode ID is required"),
+  username: z.string().min(1, "LeetCode username is required"),
 });
 
 type ProfileValues = z.infer<typeof profileSchema>;
 
-// Mock profile analysis result type - this would come from the API in the real application
+// Profile analysis result type
 type ProfileAnalysisResult = {
   username: string;
   totalScore: number;
@@ -56,46 +53,20 @@ type ProfileAnalysisResult = {
 export default function ProfileAnalysis() {
   const { toast } = useToast();
   const [analysisResult, setAnalysisResult] = useState<ProfileAnalysisResult | null>(null);
-
-  // Create form
+  
+  // Create form with validation
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      leetcodeId: "",
+      username: "",
     },
   });
 
-  // Mock analysis mutation (would actually call the API in production)
+  // Analysis mutation
   const analyzeProfileMutation = useMutation({
     mutationFn: async (data: ProfileValues) => {
-      // In a real application, this would be an API call
-      // const res = await apiRequest("POST", "/api/analyze-profile", data);
-      // return await res.json();
-      
-      // For demo purposes, we'll return mock data after a delay
-      // In production, this would be replaced with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock result
-      return {
-        username: data.leetcodeId,
-        totalScore: 78,
-        totalProblems: 342,
-        easyCount: 187,
-        mediumCount: 124,
-        hardCount: 31,
-        strongTopics: ["Arrays", "Strings", "Dynamic Programming"],
-        weakTopics: ["Graphs", "Trees", "Bit Manipulation"],
-        consistency: 65,
-        problemSolvingSpeed: 82,
-        ranking: 54293,
-        recommendations: [
-          "Focus on practicing Graph problems",
-          "Try more Hard problems to improve your skills",
-          "Improve consistency by solving at least one problem daily",
-          "Review Binary Tree problem patterns"
-        ]
-      };
+      const res = await apiRequest("POST", "/api/analyze-profile", data);
+      return await res.json();
     },
     onSuccess: (data) => {
       setAnalysisResult(data);
@@ -139,7 +110,7 @@ export default function ProfileAnalysis() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="leetcodeId"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>LeetCode Username</FormLabel>
