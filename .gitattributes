@@ -1,0 +1,25 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Specify language for syntax highlighting in GitHub
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+*.json linguist-language=JSON
+*.md linguist-language=Markdown
+*.css linguist-language=CSS
+*.html linguist-language=HTML
+
+# Exclude files from GitHub statistics
+/node_modules/** linguist-vendored
+/dist/** linguist-generated
+*.lock linguist-generated=true
+
+# Treat images as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
