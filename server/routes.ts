@@ -11,6 +11,7 @@ import {
   Problem
 } from "@shared/schema";
 import { z } from "zod";
+import { LeetCode } from "@leetnotion/leetcode-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
@@ -299,6 +300,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // API route to analyze a LeetCode profile
+
+  // API route to analyze a LeetCode profile
   app.post("/api/analyze-profile", isAuthenticated, async (req, res) => {
     try {
       const { username } = req.body;
@@ -307,40 +310,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username is required" });
       }
       
-      // In a real implementation, this would fetch data from LeetCode's API
-      // For demo purposes, we'll generate some realistic sample data
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Generate a realistic analysis result
-      const totalProblems = Math.floor(Math.random() * 800) + 200;
-      const easyCount = Math.floor(totalProblems * (0.4 + Math.random() * 0.2));
-      const mediumCount = Math.floor(totalProblems * (0.3 + Math.random() * 0.2));
-      const hardCount = totalProblems - easyCount - mediumCount;
-      
-      const analysisResult = {
-        username,
-        totalScore: Math.floor(Math.random() * 30) + 70, // Score between 70-100
-        totalProblems,
-        easyCount,
-        mediumCount,
-        hardCount,
-        strongTopics: ["Arrays", "Dynamic Programming", "Binary Search", "Trees"].slice(0, Math.floor(Math.random() * 3) + 2),
-        weakTopics: ["Graph", "Backtracking", "Bit Manipulation", "Design"].slice(0, Math.floor(Math.random() * 3) + 2),
-        consistency: Math.floor(Math.random() * 40) + 60, // 60-100%
-        problemSolvingSpeed: Math.floor(Math.random() * 30) + 70, // 70-100
-        ranking: Math.floor(Math.random() * 50000) + 1000,
-        recommendations: [
-          "Focus on solving more hard problems to improve your ranking",
-          "Practice more consistently with daily challenges",
-          "Work on improving your weak areas, particularly in Graph algorithms",
-          "Try participating in weekly contests to build problem-solving speed"
-        ].slice(0, Math.floor(Math.random() * 2) + 3)
-      };
-      
-      res.json(analysisResult);
+      // Fetch real data from LeetCode API
+      try {
+        // Create LeetCode client instance
+        const leetcodeClient = new LeetCode();
+        
+        // Get user profile data
+        const userProfile = await leetcodeClient.user(username);
+        
+        if (!userProfile || !userProfile.matchedUser) {
+          return res.status(404).json({ message: "LeetCode user not found" });
+        }
+        
+        // Get user's recent submissions for consistency analysis
+        const submissions = await leetcodeClient.recent_user_submissions(username, { limit: 50 });
+        
+        // Get problem solving stats
+        const userProblems = await leetcodeClient.problems(username);
+        
+        // Calculate total problems
+        const submitStats = userProfile.matchedUser.submitStats;
+        const totalProblems = submitStats.acSubmissionNum.find(item => item.difficulty === "All")?.count || 0;
+        const easyCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Easy")?.count || 0;
+        const mediumCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Medium")?.count || 0;
+        const hardCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Hard")?.count || 0;
+        
+        // Calculate ranking (if available)
+        const ranking = userProfile.matchedUser.profile.ranking || 0;
+        
+        // Calculate consistency score based on submission frequency
+        let consistency = 0;
+        if (submissions && submissions.length > 0) {
+          // Check how regularly they solve problems
+          const submissionDates = submissions.map(sub => new Date(sub.timestamp * 1000).toISOString().split('T')[0]);
+          const uniqueDates = new Set(submissionDates);
+          consistency = Math.min(100, Math.round((uniqueDates.size / 30) * 100));
+        }
+        
+        // Extract topics/tags from the problems data
+        const topicMap = new Map();
+        
+        if (userProblems && userProblems.matchedUser && userProblems.matchedUser.tagProblemCounts) {
+          const tags = userProblems.matchedUser.tagProblemCounts;
+          
+          // Process each tag
+          tags.forEach(tag => {
+            topicMap.set(tag.tagName, {
+              tagName: tag.tagName,
+              problemsSolved: tag.problemsSolved,
+              problemsTotal: tag.problemsTotal
+            });
+          });
+        }
+        
+        // Convert to array for sorting
+        const topicArray = Array.from(topicMap.values());
+        
+        // Identify strong topics (tags with highest solve count)
+        const sortedTags = [...topicArray].sort((a, b) => b.problemsSolved - a.problemsSolved);
+        const strongTopics = sortedTags.slice(0, 3).map(tag => tag.tagName);
+        
+        // Identify weak topics (tags with lowest solve percentage)
+        const weakTopics = sortedTags.filter(tag => tag.problemsSolved > 0)
+          .sort((a, b) => (a.problemsSolved / a.problemsTotal) - (b.problemsSolved / b.problemsTotal))
+          .slice(0, 3).map(tag => tag.tagName);
+        
+        // Calculate problem-solving speed (based on acceptance rate)
+        const problemSolvingSpeed = Math.min(100, Math.round(userProfile.matchedUser.submitStats.acRate));
+        
+        // Calculate total score (based on problems solved, difficulty distribution, consistency)
+        // This is a custom formula that weighs different aspects of the profile
+        const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+        const totalScore = Math.min(100, Math.round(
+          (totalProblems / 10) * 0.3 + // Problems solved (30%)
+          (difficultyScore * 20) * 0.4 + // Difficulty level (40%)
+          consistency * 0.2 + // Consistency (20%)
+          problemSolvingSpeed * 0.1 // Problem-solving speed (10%)
+        ));
+        
+        // Generate personalized recommendations
+        const recommendations = [];
+        
+        if (hardCount / totalProblems < 0.1) {
+          recommendations.push("Focus on solving more hard problems to improve your ranking");
+        }
+        
+        if (consistency < 70) {
+          recommendations.push("Practice more consistently with daily challenges");
+        }
+        
+        if (weakTopics.length > 0) {
+          recommendations.push(`Work on improving your weak areas, particularly in ${weakTopics[0]} problems`);
+        }
+        
+        if (userProfile.matchedUser.userContestInfo?.attendedContestsCount < 5) {
+          recommendations.push("Try participating in weekly contests to build problem-solving speed");
+        }
+        
+        if (recommendations.length === 0) {
+          recommendations.push("Continue your excellent work! Consider mentoring others in the community");
+        }
+        
+        const analysisResult = {
+          username,
+          totalScore,
+          totalProblems,
+          easyCount,
+          mediumCount,
+          hardCount,
+          strongTopics,
+          weakTopics,
+          consistency,
+          problemSolvingSpeed,
+          ranking,
+          recommendations
+        };
+        
+        res.json(analysisResult);
+      } catch (error: any) {
+        console.error("Error fetching LeetCode data:", error);
+        return res.status(500).json({ 
+          message: "Failed to fetch data from LeetCode. Please ensure the username is correct and the profile is public.",
+          error: error.message
+        });
+      }
     } catch (error) {
+      console.error("Error analyzing profile:", error);
       res.status(500).json({ message: "Failed to analyze LeetCode profile" });
     }
   });
@@ -354,47 +449,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "At least two usernames are required" });
       }
       
-      // In a real implementation, this would fetch data from LeetCode's API
-      // For demo purposes, we'll generate some realistic sample data
-      
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Generate realistic comparison results
-      const profiles = usernames.map((username, index) => {
-        const baseScore = 65 + (index * 5) % 30;
-        const problemCount = 200 + (index * 50) % 300;
-        const easyPercent = 40 + (index * 5) % 30;
-        const mediumPercent = 30 + (index * 7) % 40;
-        const hardPercent = 100 - easyPercent - mediumPercent;
+      try {
+        // Fetch real data for each profile
+        const profilePromises = usernames.map(async (username) => {
+          try {
+            // Create LeetCode client instance
+            const leetcodeClient = new LeetCode();
+            
+            // Get user profile data
+            const userProfile = await leetcodeClient.user(username);
+            
+            if (!userProfile || !userProfile.matchedUser) {
+              return null; // Skip invalid profiles
+            }
+            
+            // Get user's recent submissions for consistency analysis
+            const submissions = await leetcodeClient.recent_user_submissions(username, 20);
+            
+            // Get problem solving stats
+            const userProblems = await leetcodeClient.problems(username);
+            
+            // Calculate total problems
+            const submitStats = userProfile.matchedUser.submitStats;
+            const totalProblems = submitStats.acSubmissionNum.find(item => item.difficulty === "All")?.count || 0;
+            const easyCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Easy")?.count || 0;
+            const mediumCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Medium")?.count || 0;
+            const hardCount = submitStats.acSubmissionNum.find(item => item.difficulty === "Hard")?.count || 0;
+            
+            // Calculate ranking (if available)
+            const ranking = userProfile.matchedUser.profile.ranking || 0;
+            
+            // Calculate consistency score
+            let consistency = 0;
+            if (submissions && submissions.length > 0) {
+              const submissionDates = submissions.map(sub => new Date(sub.timestamp * 1000).toISOString().split('T')[0]);
+              const uniqueDates = new Set(submissionDates);
+              consistency = Math.min(100, Math.round((uniqueDates.size / 20) * 100));
+            }
+            
+            // Extract topics/tags from the problems data
+            const topicMap = new Map();
+            
+            if (userProblems && userProblems.matchedUser && userProblems.matchedUser.tagProblemCounts) {
+              const tags = userProblems.matchedUser.tagProblemCounts;
+              
+              // Process each tag
+              tags.forEach(tag => {
+                topicMap.set(tag.tagName, {
+                  tagName: tag.tagName,
+                  problemsSolved: tag.problemsSolved,
+                  problemsTotal: tag.problemsTotal
+                });
+              });
+            }
+            
+            // Convert to array for sorting
+            const topicArray = Array.from(topicMap.values());
+            
+            // Identify strong topics (tags with highest solve count)
+            const sortedTags = [...topicArray].sort((a, b) => b.problemsSolved - a.problemsSolved);
+            const strongTopics = sortedTags.slice(0, 3).map(tag => tag.tagName);
+            
+            // Calculate total score
+            const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+            const totalScore = Math.min(100, Math.round(
+              (totalProblems / 10) * 0.3 + // Problems solved (30%)
+              (difficultyScore * 20) * 0.4 + // Difficulty level (40%)
+              consistency * 0.2 + // Consistency (20%)
+              (userProfile.matchedUser.submitStats.acRate) * 0.1 // Problem-solving speed (10%)
+            ));
+            
+            return {
+              username,
+              totalScore,
+              totalProblems,
+              easyCount,
+              mediumCount,
+              hardCount,
+              strongTopics,
+              consistency,
+              ranking,
+            };
+          } catch (err) {
+            console.error(`Error fetching data for ${username}:`, err);
+            return null;
+          }
+        });
         
-        return {
-          username,
-          totalScore: baseScore,
-          totalProblems: problemCount,
-          easyCount: Math.round(problemCount * (easyPercent / 100)),
-          mediumCount: Math.round(problemCount * (mediumPercent / 100)),
-          hardCount: Math.round(problemCount * (hardPercent / 100)),
-          strongTopics: ["Arrays", "Dynamic Programming", "Binary Search", "Trees", "Strings"].slice(0, 2 + (index % 3)),
-          consistency: 60 + (index * 8) % 30,
-          ranking: 50000 - (index * 10000),
+        // Wait for all profile data to be fetched
+        const profileResults = await Promise.all(profilePromises);
+        
+        // Filter out any null results (failed fetches)
+        const profiles = profileResults.filter(profile => profile !== null);
+        
+        if (profiles.length < 2) {
+          return res.status(400).json({ 
+            message: "Could not retrieve enough valid LeetCode profiles for comparison"
+          });
+        }
+        
+        // Find common topics
+        const allStrongTopics = profiles.map(p => p.strongTopics);
+        const commonTopics = allStrongTopics[0].filter(topic => 
+          allStrongTopics.every(topics => topics.includes(topic))
+        );
+        
+        // Generate analysis based on the profiles
+        let analysis = "";
+        
+        // Sort profiles by total score
+        const sortedProfiles = [...profiles].sort((a, b) => b.totalScore - a.totalScore);
+        const topProfile = sortedProfiles[0];
+        const bottomProfile = sortedProfiles[sortedProfiles.length - 1];
+        
+        if (topProfile.totalScore - bottomProfile.totalScore > 30) {
+          analysis = `There's a significant difference in performance across these profiles. ${topProfile.username} shows stronger overall metrics with ${topProfile.totalProblems} problems solved and a focus on ${topProfile.strongTopics.join(", ")}.`;
+        } else {
+          analysis = `These profiles show relatively similar performance levels. ${commonTopics.length > 0 ? `They share strengths in ${commonTopics.join(", ")}` : 'They focus on different topic areas'}.`;
+        }
+        
+        // Add difficulty distribution analysis
+        const hardRatios = profiles.map(p => p.hardCount / p.totalProblems);
+        const maxHardRatio = Math.max(...hardRatios);
+        const minHardRatio = Math.min(...hardRatios);
+        
+        if (maxHardRatio - minHardRatio > 0.1) {
+          const hardFocusProfile = profiles[hardRatios.indexOf(maxHardRatio)];
+          analysis += ` ${hardFocusProfile.username} tackles more challenging problems with ${hardFocusProfile.hardCount} hard problems solved.`;
+        }
+        
+        // Add consistency analysis
+        const maxConsistency = Math.max(...profiles.map(p => p.consistency));
+        if (maxConsistency > 80) {
+          const consistentProfile = profiles.find(p => p.consistency === maxConsistency);
+          analysis += ` ${consistentProfile.username} shows excellent consistency in problem-solving practice.`;
+        }
+        
+        const result = {
+          profiles,
+          commonTopics,
+          analysis
         };
-      });
-      
-      // Find common topics
-      const allStrongTopics = profiles.map(p => p.strongTopics);
-      const commonTopics = allStrongTopics[0].filter(topic => 
-        allStrongTopics.every(topics => topics.includes(topic))
-      );
-      
-      const result = {
-        profiles,
-        commonTopics,
-        analysis: "Based on the profiles compared, there's a significant difference in problem-solving patterns and efficiency. Some users excel at harder problems while others have solved more problems overall. The consistency in problem solving varies across profiles."
-      };
-      
-      res.json(result);
+        
+        res.json(result);
+      } catch (error: any) {
+        console.error("Error comparing profiles:", error);
+        return res.status(500).json({ 
+          message: "Failed to compare LeetCode profiles", 
+          error: error.message 
+        });
+      }
     } catch (error) {
+      console.error("Error processing comparison request:", error);
       res.status(500).json({ message: "Failed to compare LeetCode profiles" });
     }
   });
