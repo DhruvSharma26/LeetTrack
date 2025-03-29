@@ -1,14 +1,6 @@
-import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { Bell, ChevronDown, Menu } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Link } from "wouter";
 
 type HeaderProps = {
@@ -18,16 +10,7 @@ type HeaderProps = {
 
 export default function Header({ title, toggleMobileSidebar }: HeaderProps) {
   const { logoutMutation } = useAuth();
-  const [timeFilter, setTimeFilter] = useState("Last 30 days");
-
-  const timeFilters = [
-    "Last 7 days",
-    "Last 30 days",
-    "Last 90 days",
-    "Last 12 months",
-    "All time"
-  ];
-
+  
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -47,31 +30,8 @@ export default function Header({ title, toggleMobileSidebar }: HeaderProps) {
           <h1 className="text-xl font-semibold hidden md:block">{title}</h1>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5 text-gray-500" />
-          </Button>
-          
-          <Separator orientation="vertical" className="h-6" />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-1 text-sm">
-                <span>{timeFilter}</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {timeFilters.map((filter) => (
-                <DropdownMenuItem 
-                  key={filter}
-                  onClick={() => setTimeFilter(filter)}
-                >
-                  {filter}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center">
+          {/* User account/profile functionality can be added here if needed */}
         </div>
       </div>
     </header>
