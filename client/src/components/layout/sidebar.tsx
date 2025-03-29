@@ -3,11 +3,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { 
   Home, 
-  PlusCircle, 
-  List, 
-  BarChart2, 
   Settings, 
-  Code
+  Code,
+  LogOut
 } from "lucide-react";
 
 type SidebarLinkProps = {
@@ -37,7 +35,7 @@ const SidebarLink = ({ href, icon, children, currentPath }: SidebarLinkProps) =>
 
 export default function Sidebar() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   
   return (
     <aside className="w-full md:w-64 bg-gray-800 text-white flex flex-col min-h-screen h-full">
@@ -56,31 +54,7 @@ export default function Sidebar() {
           icon={<Home size={20} />} 
           currentPath={location}
         >
-          Dashboard
-        </SidebarLink>
-        
-        <SidebarLink 
-          href="/add-problem" 
-          icon={<PlusCircle size={20} />} 
-          currentPath={location}
-        >
-          Add Problem
-        </SidebarLink>
-        
-        <SidebarLink 
-          href="/problem-log" 
-          icon={<List size={20} />} 
-          currentPath={location}
-        >
-          Problem Log
-        </SidebarLink>
-        
-        <SidebarLink 
-          href="/stats" 
-          icon={<BarChart2 size={20} />} 
-          currentPath={location}
-        >
-          Statistics
+          LeetCode Analysis
         </SidebarLink>
         
         <SidebarLink 
@@ -103,6 +77,12 @@ export default function Sidebar() {
               <p className="text-xs text-gray-400">{user.email}</p>
             </div>
           </div>
+          <button 
+            onClick={() => logoutMutation.mutate()}
+            className="mt-3 flex items-center text-sm text-gray-300 hover:text-white px-2 py-1 rounded-md hover:bg-gray-700 w-full"
+          >
+            <LogOut size={16} className="mr-2" /> Logout
+          </button>
         </div>
       )}
     </aside>
