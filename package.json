@@ -1,6 +1,7 @@
 {
-  "name": "rest-express",
+  "name": "leettrack",
   "version": "1.0.0",
+  "description": "LeetCode profile analysis and comparison tool for tracking programming progress",
   "type": "module",
   "license": "MIT",
   "scripts": {
