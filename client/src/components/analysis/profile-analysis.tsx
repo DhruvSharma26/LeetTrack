@@ -166,15 +166,20 @@ export default function ProfileAnalysis() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Profile Analysis for {analysisResult.username}</CardTitle>
-                <Badge className="text-lg py-2 px-3">
-                  Score: <span className={getScoreColor(analysisResult.totalScore)}>{analysisResult.totalScore}/100</span>
-                </Badge>
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Profile Analysis for {analysisResult.username}</CardTitle>
+                  <CardDescription>
+                    Based on your LeetCode activity and problem-solving patterns
+                  </CardDescription>
+                </div>
+                <div className="bg-gray-900 text-white rounded-xl py-3 px-5 shadow-lg flex items-center">
+                  <div className="mr-2 font-bold text-lg">Score:</div>
+                  <div className={`text-2xl font-extrabold ${getScoreColor(analysisResult.totalScore)}`}>
+                    {analysisResult.totalScore}/100
+                  </div>
+                </div>
               </div>
-              <CardDescription>
-                Based on your LeetCode activity and problem-solving patterns
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Problem Statistics */}

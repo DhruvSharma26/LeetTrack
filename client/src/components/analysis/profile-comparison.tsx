@@ -273,14 +273,14 @@ export default function ProfileComparison() {
                   </CardContent>
                 </Card>
                 
-                <Card>
+                <Card className="bg-gray-900 text-white border-0 shadow-xl">
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center justify-center text-center">
-                      <BarChart4 className="h-8 w-8 mb-2 text-blue-500" />
-                      <h3 className="font-medium text-lg">
-                        {Math.max(...comparisonResult.profiles.map(p => p.totalScore))}
+                      <BarChart4 className="h-8 w-8 mb-2 text-blue-300" />
+                      <h3 className="font-bold text-2xl text-blue-300">
+                        {Math.max(...comparisonResult.profiles.map(p => p.totalScore))}/100
                       </h3>
-                      <p className="text-sm text-muted-foreground">Top Score</p>
+                      <p className="text-sm text-gray-300">Highest Score</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -309,8 +309,10 @@ export default function ProfileComparison() {
                       {comparisonResult.profiles.map((profile) => (
                         <TableRow key={profile.username}>
                           <TableCell className="font-medium">{profile.username}</TableCell>
-                          <TableCell className={`text-right ${getScoreColor(profile.totalScore)}`}>
-                            {profile.totalScore}/100
+                          <TableCell className="text-right">
+                            <span className={`font-bold py-1 px-2 rounded-md bg-gray-900 text-white ${getScoreColor(profile.totalScore)}`}>
+                              {profile.totalScore}/100
+                            </span>
                           </TableCell>
                           <TableCell className="text-right">{profile.totalProblems}</TableCell>
                           <TableCell className="text-right text-green-500">{profile.easyCount}</TableCell>
@@ -375,6 +377,32 @@ export default function ProfileComparison() {
                 </CardContent>
               </Card>
               
+              {/* Individual Strong Topics */}
+              <Card>
+                <CardHeader className="border-b">
+                  <CardTitle className="text-base">Individual Strong Topics</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {comparisonResult.profiles.map((profile) => (
+                      <div key={profile.username} className="space-y-2">
+                        <h3 className="font-medium text-sm">{profile.username}'s Strengths:</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {profile.strongTopics.map((topic, index) => (
+                            <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-100">
+                              {topic}
+                            </Badge>
+                          ))}
+                          {profile.strongTopics.length === 0 && (
+                            <p className="text-muted-foreground text-sm">No strong topics identified</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Common topics */}
               <Card>
                 <CardHeader className="border-b">
