@@ -271,47 +271,6 @@ export default function ProfileAnalysis() {
                 </CardContent>
               </Card>
               
-              {/* Strengths and Weaknesses */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <CardHeader className="border-b">
-                    <CardTitle className="text-base">Strong Areas</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-wrap gap-2">
-                      {analysisResult.strongTopics && analysisResult.strongTopics.length > 0 ? (
-                        analysisResult.strongTopics.map((topic, index) => (
-                          <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-100">
-                            {topic}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground text-sm">No strong topic areas identified yet. Continue solving more diverse problems.</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="border-b">
-                    <CardTitle className="text-base">Areas to Improve</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-wrap gap-2">
-                      {analysisResult.weakTopics && analysisResult.weakTopics.length > 0 ? (
-                        analysisResult.weakTopics.map((topic, index) => (
-                          <Badge key={index} className="bg-red-100 text-red-800 hover:bg-red-100">
-                            {topic}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-muted-foreground text-sm">No specific weak areas identified. Focus on solving more diverse problem types to uncover areas for improvement.</p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
               {/* Recommendations */}
               <Card>
                 <CardHeader className="border-b">

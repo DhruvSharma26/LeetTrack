@@ -379,25 +379,6 @@ export default function ProfileComparison() {
                 </CardContent>
               </Card>
               
-              {/* Common topics */}
-              <Card>
-                <CardHeader className="border-b">
-                  <CardTitle className="text-base">Common Strong Topics</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="flex flex-wrap gap-2">
-                    {comparisonResult.commonTopics.map((topic, index) => (
-                      <Badge key={index} className="bg-blue-100 text-blue-800 hover:bg-blue-100">
-                        {topic}
-                      </Badge>
-                    ))}
-                    {comparisonResult.commonTopics.length === 0 && (
-                      <p className="text-muted-foreground">No common topics found between these profiles</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
               {/* Analysis */}
               <Card>
                 <CardHeader className="border-b">
