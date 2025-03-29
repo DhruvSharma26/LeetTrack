@@ -378,25 +378,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Calculate problem-solving speed (based on acceptance rate)
         const problemSolvingSpeed = Math.min(100, Math.round(userProfile.matchedUser.submitStats.acRate));
         
-        // Calculate total score (based on problems solved, difficulty distribution, consistency)
-        // This is a custom formula that weighs different aspects of the profile
-        const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+        // As per client requirement: if consistency is >50%, score should be between 70-92
+        let totalScore;
         
-        // Enhanced calculation to ensure scores scale properly
-        const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
-        const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
-        const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
-        const speedPoints = Math.min(10, Math.round(problemSolvingSpeed * 0.1)); // Scale up to 10 points max
-        
-        // Sum up the points to get total score out of 100
-        const totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
+        if (consistency > 50) {
+          // Generate a score between 70 and 92, influenced by the user's stats
+          // Use the totalProblems, easyCount, mediumCount, and hardCount to add some variation
+          const baseScore = 70;
+          const maxAdditionalScore = 22;
+          
+          // More problems and higher difficulty should result in a higher score
+          const problemsFactor = Math.min(1, totalProblems / 200); // Maxes out at 200 problems
+          const difficultyFactor = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems * 3);
+          
+          // Calculate weighted additional score
+          const additionalScore = Math.round(
+            maxAdditionalScore * (
+              (problemsFactor * 0.4) + // 40% weight to number of problems
+              (difficultyFactor * 0.4) + // 40% weight to difficulty
+              (consistency / 100 * 0.2) // 20% weight to consistency
+            )
+          );
+          
+          totalScore = baseScore + additionalScore;
+        } else {
+          // Calculate score the regular way, but ensure it never returns NaN
+          const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+          
+          // Enhanced calculation to ensure scores scale properly
+          const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
+          const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
+          const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
+          const speedPoints = Math.min(10, Math.round((problemSolvingSpeed || 0) * 0.1)); // Scale up to 10 points max, default to 0 if NaN
+          
+          // Sum up the points to get total score out of 100, ensure it's never NaN
+          totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
+        }
         
         console.log(`Score calculation for ${username}:
-          Total Problems: ${totalProblems} → ${problemsScore} points
-          Difficulty Score: ${difficultyScore.toFixed(2)} → ${difficultyScorePoints} points
-          Consistency: ${consistency}% → ${consistencyPoints} points
-          Speed: ${problemSolvingSpeed}% → ${speedPoints} points
-          Total Score: ${totalScore}/100
+          Total Problems: ${totalProblems}
+          Difficulty Distribution: Easy: ${easyCount}, Medium: ${mediumCount}, Hard: ${hardCount}
+          Consistency: ${consistency}%
+          Final Score: ${totalScore}/100
         `);
         
         // Generate personalized recommendations
@@ -521,17 +544,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const sortedTags = [...topicArray].sort((a, b) => b.problemsSolved - a.problemsSolved);
             const strongTopics = sortedTags.slice(0, 3).map(tag => tag.tagName);
             
-            // Calculate total score
-            const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+            // Calculate total score following the same logic as the single profile analysis
+            // As per client requirement: if consistency is >50%, score should be between 70-92
+            let totalScore;
             
-            // Enhanced calculation to ensure scores scale properly
-            const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
-            const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
-            const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
-            const speedPoints = Math.min(10, Math.round((userProfile.matchedUser.submitStats.acRate || 0) * 0.1)); // Scale up to 10 points max
+            if (consistency > 50) {
+              // Generate a score between 70 and 92, influenced by the user's stats
+              const baseScore = 70;
+              const maxAdditionalScore = 22;
+              
+              // More problems and higher difficulty should result in a higher score
+              const problemsFactor = Math.min(1, totalProblems / 200); // Maxes out at 200 problems
+              const difficultyFactor = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems * 3);
+              
+              // Calculate weighted additional score
+              const additionalScore = Math.round(
+                maxAdditionalScore * (
+                  (problemsFactor * 0.4) + // 40% weight to number of problems
+                  (difficultyFactor * 0.4) + // 40% weight to difficulty
+                  (consistency / 100 * 0.2) // 20% weight to consistency
+                )
+              );
+              
+              totalScore = baseScore + additionalScore;
+            } else {
+              // Regular calculation for users with low consistency
+              const difficultyScore = (easyCount * 1 + mediumCount * 2 + hardCount * 3) / Math.max(1, totalProblems);
+              
+              // Enhanced calculation to ensure scores scale properly
+              const problemsScore = Math.min(30, Math.round((totalProblems / 100) * 30)); // Scale up to 30 points max
+              const difficultyScorePoints = Math.min(40, Math.round(difficultyScore * 40)); // Scale up to 40 points max
+              const consistencyPoints = Math.min(20, Math.round(consistency * 0.2)); // Scale up to 20 points max
+              const speedPoints = Math.min(10, Math.round((userProfile.matchedUser.submitStats.acRate || 0) * 0.1)); // Scale up to 10 points max
+              
+              // Sum up the points to get total score out of 100
+              totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
+            }
             
-            // Sum up the points to get total score out of 100
-            const totalScore = problemsScore + difficultyScorePoints + consistencyPoints + speedPoints;
+            console.log(`Score calculation for ${username} (comparison): Total Problems: ${totalProblems}, Consistency: ${consistency}%, Score: ${totalScore}/100`);
             
             return {
               username,
