@@ -175,8 +175,8 @@ export default function ProfileAnalysis() {
                 </div>
                 <div className="bg-gray-900 text-white rounded-xl py-3 px-5 shadow-lg flex items-center">
                   <div className="mr-2 font-bold text-lg">Score:</div>
-                  <div className={`text-2xl font-extrabold ${getScoreColor(analysisResult.totalScore)}`}>
-                    {analysisResult.totalScore}/100
+                  <div className={`text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600`}>
+                    {analysisResult.totalScore} / 100
                   </div>
                 </div>
               </div>

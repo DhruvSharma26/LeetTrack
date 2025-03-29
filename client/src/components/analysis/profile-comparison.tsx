@@ -277,8 +277,8 @@ export default function ProfileComparison() {
                   <CardContent className="pt-6">
                     <div className="flex flex-col items-center justify-center text-center">
                       <BarChart4 className="h-8 w-8 mb-2 text-blue-300" />
-                      <h3 className="font-bold text-2xl text-blue-300">
-                        {Math.max(...comparisonResult.profiles.map(p => p.totalScore))}/100
+                      <h3 className="font-bold text-3xl bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                        {Math.max(...comparisonResult.profiles.map(p => p.totalScore))} / 100
                       </h3>
                       <p className="text-sm text-gray-300">Highest Score</p>
                     </div>
@@ -310,8 +310,10 @@ export default function ProfileComparison() {
                         <TableRow key={profile.username}>
                           <TableCell className="font-medium">{profile.username}</TableCell>
                           <TableCell className="text-right">
-                            <span className={`font-bold py-1 px-2 rounded-md bg-gray-900 text-white ${getScoreColor(profile.totalScore)}`}>
-                              {profile.totalScore}/100
+                            <span className="font-bold py-1 px-2 rounded-md bg-gray-900 text-white">
+                              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                                {profile.totalScore} / 100
+                              </span>
                             </span>
                           </TableCell>
                           <TableCell className="text-right">{profile.totalProblems}</TableCell>
