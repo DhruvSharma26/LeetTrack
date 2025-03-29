@@ -9,8 +9,8 @@ import ProgressChart from "@/components/dashboard/progress-chart";
 import PlatformBreakdown from "@/components/dashboard/platform-breakdown";
 import DifficultySplit from "@/components/dashboard/difficulty-split";
 import TopicDistribution from "@/components/dashboard/topic-distribution";
-import ActivityCalendar from "@/components/dashboard/activity-calendar";
 import RecentProblems from "@/components/dashboard/recent-problems";
+import AnalysisSelector from "@/components/analysis/analysis-selector";
 import { Loader2 } from "lucide-react";
 
 export default function HomePage() {
@@ -18,15 +18,9 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Fetch user stats
-  const { data: stats, isLoading, error } = useQuery<Stats>({
+  const { data: stats, isLoading, error } = useQuery<Stats, Error>({
     queryKey: ["/api/stats"],
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to load statistics",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
+    refetchOnWindowFocus: false,
   });
   
   const toggleMobileSidebar = () => {
@@ -71,23 +65,27 @@ export default function HomePage() {
         <Header title="Dashboard" toggleMobileSidebar={toggleMobileSidebar} />
         
         <div className="p-6 max-w-7xl mx-auto">
+          {/* LeetCode Profile Analysis Section */}
+          <AnalysisSelector />
+          
           {/* Stats Overview */}
-          <StatsOverview stats={stats} />
+          <div className="mt-8">
+            <StatsOverview stats={stats} />
+          </div>
           
           {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 mt-8">
             <ProgressChart progressData={stats.progressData} />
             <PlatformBreakdown platformBreakdown={stats.platformBreakdown} />
           </div>
           
           {/* Analytics Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <DifficultySplit 
               difficultyBreakdown={stats.difficultyBreakdown} 
               totalSolved={stats.totalSolved} 
             />
             <TopicDistribution topicDistribution={stats.topicDistribution} />
-            <ActivityCalendar dailyActivity={stats.dailyActivity} />
           </div>
           
           {/* Recent Problems */}
