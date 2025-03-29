@@ -279,11 +279,15 @@ export default function ProfileAnalysis() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="flex flex-wrap gap-2">
-                      {analysisResult.strongTopics.map((topic, index) => (
-                        <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-100">
-                          {topic}
-                        </Badge>
-                      ))}
+                      {analysisResult.strongTopics && analysisResult.strongTopics.length > 0 ? (
+                        analysisResult.strongTopics.map((topic, index) => (
+                          <Badge key={index} className="bg-green-100 text-green-800 hover:bg-green-100">
+                            {topic}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No strong topic areas identified yet. Continue solving more diverse problems.</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -294,11 +298,15 @@ export default function ProfileAnalysis() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="flex flex-wrap gap-2">
-                      {analysisResult.weakTopics.map((topic, index) => (
-                        <Badge key={index} className="bg-red-100 text-red-800 hover:bg-red-100">
-                          {topic}
-                        </Badge>
-                      ))}
+                      {analysisResult.weakTopics && analysisResult.weakTopics.length > 0 ? (
+                        analysisResult.weakTopics.map((topic, index) => (
+                          <Badge key={index} className="bg-red-100 text-red-800 hover:bg-red-100">
+                            {topic}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">No specific weak areas identified. Focus on solving more diverse problem types to uncover areas for improvement.</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
